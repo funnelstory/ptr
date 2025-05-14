@@ -2,13 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ '*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ '*' ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      COVERAGE_THRESHOLD: 95  # Set the threshold here as a variable
 
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +24,17 @@ jobs:
       - name: Install dependencies
         run: go mod tidy
 
-      - name: Run tests
-        run: make test
-
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.55
+        run: make lint
+
+      - name: Run tests with coverage
+        run: make coverage
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          if [ "$(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l)" -eq 1 ]; then
+            echo "Code coverage is below $COVERAGE_THRESHOLD%. Coverage is ${COVERAGE}%"
+            exit 1
+          fi
+          echo "Code coverage is ${COVERAGE}% — All good!"
