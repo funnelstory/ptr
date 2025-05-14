@@ -11,26 +11,26 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      COVERAGE_THRESHOLD: 95  # Set the threshold here as a variable
+      COVERAGE_THRESHOLD: 100
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.24.2"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: go mod tidy
 
       - name: Lint
-        run: make lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.2
 
-      - name: Run tests with coverage
+      - name: Run Tests
         run: make coverage
 
-      - name: Check coverage threshold
+      - name: Check Coverage Threshold
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           if [ "$(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l)" -eq 1 ]; then

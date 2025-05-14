@@ -146,5 +146,3 @@ This is a micro-library, but you’re welcome to contribute:
 - Benchmarks
 
 Open an issue or PR — and please include tests!
-
-```
