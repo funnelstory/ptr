@@ -1,6 +1,6 @@
 # 🧠 ptr — Pointer to Anything
 
-The only generic function you need for pointerizing literals in Go.
+Generic helpers for pointerizing literals and safely dereferencing in Go.
 
 ---
 
@@ -25,7 +25,7 @@ import "github.com/funnelstory/ptr"
 x := ptr.Ptr("hello") // ✅ *string
 ```
 
-That’s it. One function. Fully generic. Reusable anywhere. Test-covered. Type-safe.
+That’s it. Two small functions. Fully generic. Reusable anywhere. Test-covered. Type-safe.
 
 ---
 
@@ -41,11 +41,15 @@ Or if you're using modules, just import it and `go mod tidy` will do the rest.
 
 ## 🧪 Usage
 
-The `ptr` package exports exactly one thing:
+The `ptr` package exports:
 
 ```go
 func Ptr[T any](v T) *T
+func Deref[T any](p *T) T
 ```
+
+- **Ptr** — turn any value into a pointer.
+- **Deref** — get the value from a pointer, or the zero value of `T` if the pointer is nil (no panic).
 
 ### Example:
 
@@ -59,7 +63,11 @@ import (
 
 func main() {
 	s := ptr.Ptr("golang")
-	fmt.Println(*s) // Output: golang
+	fmt.Println(ptr.Deref(s)) // Output: golang
+
+	// Safe with nil:
+	var p *string = nil
+	fmt.Println(ptr.Deref(p)) // Output: (empty string, no panic)
 }
 ```
 
@@ -75,6 +83,14 @@ ptr.Ptr(func() {})            // *func()
 ptr.Ptr(nil)                  // *any
 ```
 
+### Deref examples:
+
+```go
+ptr.Deref(ptr.Ptr(42))       // 42
+ptr.Deref((*int)(nil))       // 0  (zero value, no panic)
+ptr.Deref(ptr.Ptr("hi"))     // "hi"
+```
+
 ---
 
 ## 💼 Why?
@@ -85,6 +101,7 @@ ptr.Ptr(nil)                  // *any
   - Config structs
   - Unit testing
   - Working with APIs that use pointer types for optionality
+- **Deref**: safely read optional `*T` fields without nil checks or panics
 - Tiny and dependency-free
 - Idiomatic: one package, one purpose
 
@@ -93,15 +110,14 @@ ptr.Ptr(nil)                  // *any
 ## 🔍 Project Layout
 
 ```text
-ptr/
-├── ptr/
-│   └── ptr.go            # <- The one true function
-│   └── ptr_test.go       # <- Tests covering many types
+ptr/                       # repo root = module root = package dir
+├── ptr.go                 # Ptr + Deref
+├── ptr_test.go            # Tests covering many types
 ├── go.mod
-├── Makefile              # <- test, lint, etc.
+├── Makefile               # test, lint, etc.
 ├── .github/
 │   └── workflows/
-│       └── ci.yml        # <- GitHub Actions for lint + test
+│       └── ci.yml         # GitHub Actions for lint + test
 ```
 
 ---
@@ -142,7 +158,6 @@ This is a micro-library, but you’re welcome to contribute:
 
 - Better docs/examples
 - More weird test cases
-- A `Deref[T]` companion (?)
 - Benchmarks
 
 Open an issue or PR — and please include tests!

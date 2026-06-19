@@ -119,3 +119,68 @@ func TestPtr(t *testing.T) {
 		assert.Equal(t, 123, *p)
 	})
 }
+
+func TestDeref(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil returns zero value", func(t *testing.T) {
+		t.Parallel()
+		var p *int = nil
+		assert.Equal(t, 0, Deref(p))
+	})
+
+	t.Run("nil string returns empty string", func(t *testing.T) {
+		t.Parallel()
+		var p *string = nil
+		assert.Equal(t, "", Deref(p))
+	})
+
+	t.Run("nil bool returns false", func(t *testing.T) {
+		t.Parallel()
+		var p *bool = nil
+		assert.Equal(t, false, Deref(p))
+	})
+
+	t.Run("non-nil returns value", func(t *testing.T) {
+		t.Parallel()
+		v := 42
+		p := &v
+		assert.Equal(t, 42, Deref(p))
+	})
+
+	t.Run("string", func(t *testing.T) {
+		t.Parallel()
+		s := "hello"
+		p := &s
+		assert.Equal(t, "hello", Deref(p))
+	})
+
+	t.Run("struct", func(t *testing.T) {
+		t.Parallel()
+		type foo struct {
+			A int
+			B string
+		}
+		val := foo{A: 10, B: "bar"}
+		p := &val
+		assert.Equal(t, val, Deref(p))
+	})
+
+	t.Run("nil struct pointer returns zero struct", func(t *testing.T) {
+		t.Parallel()
+		type foo struct {
+			A int
+			B string
+		}
+		var p *foo = nil
+		got := Deref(p)
+		assert.Equal(t, 0, got.A)
+		assert.Equal(t, "", got.B)
+	})
+
+	t.Run("roundtrip Ptr then Deref", func(t *testing.T) {
+		t.Parallel()
+		orig := 123
+		assert.Equal(t, orig, Deref(Ptr(orig)))
+	})
+}
